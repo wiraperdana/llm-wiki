@@ -28,17 +28,17 @@ _None._
 
 ---
 
-## Cross-cutting Sources (1)
+## Cross-cutting Sources (0)
 
-- [[wiki/sources/2026-04-17-llm-wiki-pattern]] — The LLM Wiki pattern (meta-document describing this repo's design)
+_None yet._
 
 ## Cross-cutting Entities (0)
 
 _People / orgs / products that span multiple projects go here. Default is project-scoped._
 
-## Cross-cutting Concepts (1)
+## Cross-cutting Concepts (0)
 
-- [[wiki/concepts/llm-wiki-pattern]] — Pattern for LLM-maintained personal knowledge bases
+_None yet._
 
 ## Cross-cutting Syntheses (0)
 

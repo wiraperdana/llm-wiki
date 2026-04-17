@@ -23,3 +23,37 @@
 __pycache__/
 .venv/
 .qmd/
+
+# ──────────────────────────────────────────────────────────────────────────────
+# TEMPLATE REPO RULES
+# Keep folder structure (via .gitkeep) but exclude all runtime content.
+# ──────────────────────────────────────────────────────────────────────────────
+
+# raw/ — private source documents; never commit them
+# Folder skeleton is preserved via .gitkeep placeholders.
+raw/*
+!raw/.gitkeep
+!raw/assets/
+raw/assets/*
+!raw/assets/.gitkeep
+!raw/projects/
+raw/projects/*
+!raw/projects/.gitkeep
+
+# wiki/ runtime content — pages generated during sessions
+# wiki/templates/ is explicitly kept (it's part of the template).
+wiki/sources/*
+!wiki/sources/.gitkeep
+wiki/entities/*
+!wiki/entities/.gitkeep
+wiki/concepts/*
+!wiki/concepts/.gitkeep
+wiki/syntheses/*
+!wiki/syntheses/.gitkeep
+wiki/slides/*
+!wiki/slides/.gitkeep
+wiki/projects/*
+!wiki/projects/.gitkeep
+
+# log.md and index.md are tracked but kept clean (template state).
+# Do NOT gitignore them — the agent needs them to exist when it clones the repo.
