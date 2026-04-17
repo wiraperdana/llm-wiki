@@ -17,7 +17,7 @@ This wiki is itself an instance of the pattern.
 
 ## Why it matters
 
-It inverts the usual "LLM + documents" arrangement. Instead of the LLM acting as a query-time synthesizer over raw chunks (see [[wiki/concepts/rag]]), the LLM acts as a **maintainer**: every new source is absorbed into existing pages, every answer can be filed back, every cross-reference is kept current. The intellectual lineage runs back to [[wiki/entities/vannevar-bush]]'s [[wiki/concepts/memex]] — but the piece Bush couldn't solve, who maintains the structure, is handled by the LLM.[[wiki/sources/2026-04-17-llm-wiki-pattern]]
+It inverts the usual "LLM + documents" arrangement. Instead of the LLM acting as a query-time synthesizer over raw chunks (as in Retrieval-Augmented Generation), the LLM acts as a **maintainer**: every new source is absorbed into existing pages, every answer can be filed back, every cross-reference is kept current. The source positions the pattern as a spiritual descendant of Vannevar Bush's 1945 Memex concept — the piece Bush couldn't solve (who maintains the structure) is handled by the LLM.[[wiki/sources/2026-04-17-llm-wiki-pattern]]
 
 ## Key properties
 
@@ -28,11 +28,6 @@ It inverts the usual "LLM + documents" arrangement. Instead of the LLM acting as
 - **Human/LLM division.** Human curates sources, asks questions, directs emphasis. LLM does all writing, cross-referencing, bookkeeping — the tasks humans abandon wikis over.[[wiki/sources/2026-04-17-llm-wiki-pattern]]
 - **Tooling-agnostic but Obsidian-friendly.** Plain markdown + YAML frontmatter. Obsidian Web Clipper, Dataview, Marp, graph view are natural complements.[[wiki/sources/2026-04-17-llm-wiki-pattern]]
 - **Modular.** Image handling, slide decks, search CLIs — all optional. Start minimal, add pieces as the domain demands.[[wiki/sources/2026-04-17-llm-wiki-pattern]]
-
-## Related concepts
-
-- Ancestor: [[wiki/concepts/memex]] — same animating idea, pre-LLM.
-- Contrast with: [[wiki/concepts/rag]] — stateless retrieval vs compounding artifact. See [[wiki/syntheses/rag-vs-llm-wiki]].
 
 ## Applications (from the source)
 

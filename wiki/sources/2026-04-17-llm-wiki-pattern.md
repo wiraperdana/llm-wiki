@@ -22,7 +22,7 @@ Use an LLM as a disciplined wiki maintainer: it incrementally builds and updates
 
 ## Key takeaways
 
-- **Vs RAG:** Vanilla RAG (NotebookLM, ChatGPT file uploads) retrieves raw chunks and re-synthesizes on every query — nothing accumulates. The LLM Wiki pattern compiles knowledge **once** into structured pages and keeps those pages current. See [[wiki/syntheses/rag-vs-llm-wiki]].
+- **Vs RAG:** Vanilla RAG (NotebookLM, ChatGPT file uploads) retrieves raw chunks and re-synthesizes on every query — nothing accumulates. The LLM Wiki pattern compiles knowledge **once** into structured pages and keeps those pages current.
 - **Three layers:** `raw/` (immutable sources) → `wiki/` (LLM-owned markdown) → schema file (`AGENTS.md` / `CLAUDE.md`) that tells the LLM the conventions.
 - **Three operations:** _ingest_ (file a new source and update everything it touches), _query_ (read index → read pages → answer with citations; optionally file the answer as a new synthesis page), _lint_ (periodic health check for contradictions, orphans, stale claims, missing cross-refs).
 - **Two special files:** `index.md` (content catalog, LLM keeps current) and `log.md` (append-only chronological record, greppable via `## [YYYY-MM-DD] <op> | <title>`).
@@ -40,15 +40,11 @@ The document is deliberately abstract: it communicates the pattern and leaves th
 
 The author's ergonomic setup is Obsidian open next to the LLM agent: the LLM edits files in real time; the human browses the graph, follows links, reads updated pages. **"Obsidian is the IDE; the LLM is the programmer; the wiki is the codebase."**
 
-## Entities introduced / updated
-
-- [[wiki/entities/vannevar-bush]] — cited as the spiritual ancestor of the pattern (1945 Memex proposal).
-
 ## Concepts introduced / updated
 
-- [[wiki/concepts/llm-wiki-pattern]] — the pattern itself.
-- [[wiki/concepts/memex]] — Bush's hypothetical personal knowledge store.
-- [[wiki/concepts/rag]] — Retrieval-Augmented Generation, the foil the pattern contrasts itself with.
+- [[wiki/concepts/llm-wiki-pattern]] — the pattern itself (the source's main contribution).
+
+_Note: the source also mentions Vannevar Bush's Memex (1945) and Retrieval-Augmented Generation (RAG) as background context, but does not develop either enough to warrant dedicated wiki pages at this stage. If future sources explore these in depth, create pages for them then._
 
 ## Contradictions or tensions
 
