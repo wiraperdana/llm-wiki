@@ -1,0 +1,25 @@
+# Obsidian
+.obsidian/workspace*
+.obsidian/cache
+.obsidian/appearance.json
+.trash/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+*.swp
+*~
+
+# Exports (Marp, etc.)
+*.pdf
+*.pptx
+*.html
+!raw/**/*.pdf
+!raw/**/*.html
+
+# Python / tools caches
+__pycache__/
+.venv/
+.qmd/
