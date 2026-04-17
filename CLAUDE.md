@@ -12,6 +12,7 @@ This file exists as a pointer so that Claude runtimes that look for `CLAUDE.md` 
 - **Todo lists** — When running a multi-step ingest or lint, use Claude's TodoWrite tool so the user can track progress.
 - **Ask before batch operations.** Before touching >10 pages in one pass, summarize the plan and confirm.
 - **Logging.** After every session that writes to the wiki, append a `log.md` entry (see `AGENTS.md` §6).
+- **Lint cadence.** Per `AGENTS.md` §9 principle #10: every 20 ingests or 30 days since last lint, proactively suggest a lint pass at the end of the current operation. Check with `grep "^## \[.*ingest" log.md | wc -l` vs. last `lint` entry timestamp.
 - **Skills to prefer** when relevant: `engineering:documentation`, `product-management:synthesize-research`, `anthropic-skills:pdf` (for PDF sources), `anthropic-skills:pptx` / Marp (for slide output).
 
 ---

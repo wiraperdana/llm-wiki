@@ -50,3 +50,15 @@ Cleaned up the template to ship as a pristine starting point. Three changes:
 3. **Consolidated 5 sub-READMEs into the root README.** Previously every subfolder had its own README (`raw/README.md`, `raw/projects/README.md`, `wiki/projects/README.md`, `wiki/slides/README.md`, `wiki/templates/README.md`). Deleted all five. The root `README.md` is now the single user-facing doc and covers: setup, folder layout, immutability rules (only `raw/` is LLM-immutable), daily workflow, creating a new project (`new project <slug>`), assigning raw files to projects, queries, lint, conventions, templates, Marp, and cloning the template into domain wikis.
 
 Net state: template is minimal (1 raw source, 1 source page, 1 concept page), schema is multi-project-ready, documentation is consolidated into a single root README. Ready to clone into domain wikis (`llm-wiki-personal`, `llm-wiki-company-a`, etc.).
+
+## [2026-04-17] schema-update | Lint cadence rule added
+
+Added a new principle to `AGENTS.md` §9 (principle #10) formalizing lint cadence: every 20 ingests or every 30 days since last lint, whichever comes first. Rationale: at scale (hundreds-to-thousands of raw sources), staleness and hallucination risk are driven by the ingest-to-lint ratio, not by raw corpus size. Making cadence explicit keeps the wiki layer from drifting away from the raw layer.
+
+Changes:
+- §4.3 trigger updated: lint can now fire on cadence, not only on user command. Agent proactively suggests lint at the end of the current operation (does not silently start one).
+- §9 principle #10 added with rationale + grep recipes to check cadence from `log.md`.
+- §10 quick-reference table gains a "cadence trigger" row.
+- `CLAUDE.md` mirrors the rule in its Claude-specific quick notes.
+
+No wiki content changed — schema-only.

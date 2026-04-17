@@ -164,7 +164,7 @@ Checklist:
 
 ### 4.3 Lint — "health-check the wiki"
 
-Trigger: the user says *"lint"* / *"audit"* / *"health-check"*.
+Trigger: the user says *"lint"* / *"audit"* / *"health-check"*, **OR** the lint cadence threshold has been reached (see §9 principle #10). If the cadence threshold is reached during another operation (e.g. an ingest), the agent should finish the current operation, then proactively suggest a lint pass before the next ingest.
 
 Checklist — look for and report (don't auto-fix without confirmation):
 - **Contradictions** between pages.
@@ -300,6 +300,7 @@ Slides should **draw content from wiki pages**, not restate raw-source material.
 7. **Scope discipline.** Project-scoped pages cite other project-scoped pages within the same project, OR top-level pages. A project page directly linking into _another project's_ internals is a smell — route via a top-level page instead.
 8. **Update the schema when you learn something about the domain.** The schema is a living document — if you discover a useful convention, propose adding it here.
 9. **Prefer small, frequent edits over giant rewrites.** Git-friendly.
+10. **Lint on a cadence — don't wait to be asked.** Staleness and hallucination risk grow with the ratio of ingests-to-lints, not with raw corpus size. Run (or proactively suggest) a lint pass every **20 ingests** since the last lint, or every **30 days** if the wiki has been touched — whichever comes first. To check cadence: `grep "^## \[.*ingest" log.md | wc -l` vs. `grep "^## \[.*lint" log.md | tail -1`. When the threshold is reached, the agent raises it with the user at the end of the current operation rather than silently starting a lint.
 
 ---
 
@@ -311,6 +312,7 @@ When the user says… | the agent does…
 "what does the wiki say about X?" | Run §4.2, read index + pages, answer with citations.
 "compare X and Y" | Run §4.2 and file the answer in `wiki/syntheses/` (or the relevant project's `syntheses/`).
 "lint" / "audit" / "clean up" | Run §4.3, produce report, wait for approval before fixing.
+(cadence trigger — 20 ingests or 30 days since last lint) | Agent proactively suggests a lint pass per §9 principle #10, at the end of the current operation.
 "new project <slug>" / "start a project" | Create `wiki/projects/<slug>/` + `raw/projects/<slug>/`, copy `_project.md` template into `wiki/projects/<slug>/README.md`, update `index.md`, log.
 "archive project <slug>" | Set project README status to `archived`, stop including it in lint nudges, move to Archived group in index.
 "promote <page>" / "demote <page>" | Move a page between project-scope and top-level per §2.5; update all wiki-links referencing it.
