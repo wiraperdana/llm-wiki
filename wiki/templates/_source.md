@@ -9,7 +9,14 @@ author: <author>
 published: YYYY-MM-DD
 medium: article|paper|book|podcast|video|transcript|note
 url: <original URL if any>
-status: stable
+status: stable        # stub | draft | stable | archived
+confidence: 0.8       # how sure the summary faithfully reflects the raw source — typically high for fresh ingests
+quality: 0.6          # self-assessed craft of the summary page itself (not the source)
+scrubbed:             # list of things redacted from the summary (see AGENTS.md §4.1 step 2)
+  # - API keys
+  # - Client name (see raw)
+supersedes:           # optional — [[wiki/sources/older-version]]
+superseded_by:        # optional — [[wiki/sources/newer-version]]
 ---
 
 # <Source title>
@@ -40,7 +47,7 @@ One sentence capturing the source's main claim or contribution.
 
 ## Contradictions or tensions
 
-Does anything in this source contradict existing wiki pages? Flag here.
+Does anything in this source contradict existing wiki pages? Flag with **CONTRADICTION** and link both. If this source materially replaces an older one, apply the supersession protocol (AGENTS.md §3.1d) and record the pair in frontmatter.
 
 ## Quotes worth keeping
 

@@ -93,11 +93,59 @@ tags: [tag1, tag2]
 project: <project-slug>                 # REQUIRED for project-scoped pages, OMIT for top-level pages
 sources: [[sources/some-source]]        # list of source pages this page draws from
 aliases: [alt name, another alias]      # optional — Obsidian wiki-links will match these
-status: stub | draft | stable           # how mature this page is
+status: stub | draft | stable | archived  # maturity / consolidation tier (see §3.1a)
+confidence: 0.0-1.0                     # how sure the agent is about the page's main claims (see §3.1b)
+quality: 0.0-1.0                        # self-assessed completeness & craft (updated at lint — see §3.1c)
+supersedes: [[wiki/.../old-page]]       # optional — this page replaces the linked page
+superseded_by: [[wiki/.../newer-page]]  # optional — this page has been replaced by the linked page (keep as stub redirect)
+relationships:                          # optional — typed edges to other pages (see §3.2a)
+  - {type: depends_on, target: [[wiki/concepts/foo]]}
+  - {type: owns,       target: [[wiki/entities/alice]]}
 ---
 ```
 
 Templates for each `type` live in `wiki/templates/`. The `project` field is the slug of the folder under `wiki/projects/` — e.g. `project: alpha` for anything inside `wiki/projects/alpha/`. Omit the field (or set to `null`) for cross-cutting top-level pages. Dataview queries rely on this, so consistency matters.
+
+### 3.1a Status as consolidation tier
+
+`status` encodes maturity and therefore serves as a lightweight consolidation tier:
+
+| status | meaning | typical source count | reader should |
+| --- | --- | --- | --- |
+| `stub` | One-liner placeholder; not yet trustworthy | 0–1 | treat as a TODO, not a claim |
+| `draft` | Written but thin or unreviewed | 1–2 | cite cautiously |
+| `stable` | Reviewed, multi-source, cross-linked | ≥2 | cite freely |
+| `archived` | Superseded or no longer relevant; preserved for audit | any | do not cite; follow `superseded_by` |
+
+Agents upgrade `stub → draft → stable` during ingest and lint as evidence accumulates. Move to `archived` only via supersession (§3.1d) or during lint when the user confirms.
+
+### 3.1b Confidence
+
+`confidence` is a number from `0.0` to `1.0` expressing how sure the agent is that the page's main claims are correct and current. Rough calibration guide:
+
+- `0.9+` — ≥2 independent sources agree, most recent source is fresh, no open contradictions
+- `0.7–0.9` — single strong source or multiple sources with minor tensions
+- `0.5–0.7` — single weak source, old source, or partial reconstruction
+- `<0.5` — inference-heavy, one passing mention, or flagged contradictions unresolved
+
+Confidence is per-page (the "average" confidence of its claims). For claim-level confidence, see §3.3. Confidence **decays implicitly** when the agent notices the page hasn't been reinforced for long (propose a lower number at next lint); it **strengthens** each time a new source confirms the claims.
+
+### 3.1c Quality
+
+`quality` is a self-assessed score (0.0–1.0) reflecting structural craft, not factual correctness: is the page well-organized, well-cited, linked to related pages, free of dead links, written at the right length? Agents set this when creating a page and update it during lint. Pages with `quality < 0.5` are lint candidates to rewrite or merge.
+
+### 3.1d Supersession
+
+When a new source materially replaces claims on an older page, the agent creates (or updates) a new page and marks the old one:
+
+- Set `superseded_by: [[new page]]` on the old page
+- Set `supersedes: [[old page]]` on the new page
+- Set the old page's `status: archived`
+- Leave the old page's body intact as a historical record — add a top-of-page note: `> **Archived.** Superseded by [[new page]] on YYYY-MM-DD. See below for the original claims.`
+- Update `index.md` so the new page replaces the old one in the catalog
+- Log the supersession in `log.md` under a `synthesis` or `schema-update` entry
+
+Supersession is **never silent**. If the agent isn't confident the new source truly replaces the old, it flags a contradiction (§3.3) instead and asks the user.
 
 ### 3.2 Linking
 
@@ -105,6 +153,30 @@ Templates for each `type` live in `wiki/templates/`. The `project` field is the 
 - Always link the FIRST mention of any entity or concept on a page. Subsequent mentions are optional.
 - When a new entity/concept is mentioned but has no page yet, **create a stub page** (frontmatter + one-line description + "_Stub — expand when more sources arrive._") rather than leaving a dead link.
 - Back-linking is free via Obsidian's graph view — no need to manually track inbound links.
+
+#### 3.2a Typed relationships
+
+Plain wiki-links say *"these pages relate"* — which is fine for prose but lossy for traversal. Agents should also record **typed relationships** for connections that matter semantically. Two ways to declare them:
+
+**Inline (light-weight):** use the pipe to stash a relation type in the display text: `[[wiki/entities/alice|owns]]`, `[[wiki/concepts/redis|depends_on]]`, `[[wiki/sources/old-page|supersedes]]`. Humans read "owns" / "depends_on" as labels; agents can parse the pipe.
+
+**Frontmatter block (structured):** for high-importance pages, add a `relationships:` list (see §3.1). This is what Dataview queries can filter on. Prefer this form on entity, project, and synthesis pages.
+
+Standard relationship types (extend as the domain demands — update this list):
+
+| type | direction | meaning |
+| --- | --- | --- |
+| `uses` | A → B | A employs B operationally |
+| `depends_on` | A → B | A fails if B fails |
+| `owns` | A → B | A has primary responsibility for B |
+| `caused` | A → B | A produced B |
+| `fixed` | A → B | A resolved B |
+| `contradicts` | A ↔ B | A and B make incompatible claims |
+| `supersedes` | A → B | A replaces B (see §3.1d) |
+| `part_of` | A → B | A is a sub-component of B |
+| `references` | A → B | A cites B without stronger coupling |
+
+Agents should use typed relationships **only when the type is clear from the source**. Forcing a type where none applies is worse than leaving the link plain.
 
 ### 3.3 Citations
 
@@ -114,6 +186,17 @@ Claim about X.[[sources/article-slug]]
 ```
 If multiple sources support the claim, chain them: `[[sources/a]] [[sources/b]]`.
 When sources contradict, flag it explicitly with **CONTRADICTION** and link both.
+
+**Inline confidence markers (optional but recommended for load-bearing claims).** When a claim's confidence materially differs from the page's average confidence (§3.1b), annotate it inline:
+
+```
+Project X uses Redis for caching.[[sources/a]] {c=0.9}
+Project X may migrate to Valkey in Q3.[[sources/b]] {c=0.4}  — single source, tentative
+```
+
+- `{c=0.0-1.0}` goes at the end of the sentence, after the citation chain
+- Use sparingly — only where it changes how a reader should act on the claim
+- Page-level `confidence` in frontmatter should reflect the *weighted average* of inline markers, not the max or min
 
 ### 3.4 File naming
 
@@ -135,18 +218,30 @@ Trigger: the user drops a file in `raw/` (or points to one already there) and sa
 
 Checklist:
 1. Read the raw source fully.
-2. **Determine scope.** Is this source tied to a single project? (Check where the file was dropped: `raw/projects/<x>/` → project-scoped; `raw/` root → likely cross-cutting but confirm.) If ambiguous, ask the user: *"Which project does this belong to, or is it cross-cutting?"*
-3. Discuss key takeaways with the user (2–5 bullet points) and ask what to emphasize.
-4. Create the source summary page in the correct scope:
+2. **Scrub sensitive data.** Before writing anything to `wiki/`, scan the source for credentials, API keys, tokens, passwords, private phone numbers, personal email addresses, client names under NDA, and similar sensitive strings. Redact them in any summary/quote that lands in `wiki/` (e.g. `sk-••••••••`, `[REDACTED — API key]`, `[REDACTED — client name, see raw]`). The `raw/` copy is never edited — raw is immutable. If the source is saturated with sensitive data, flag the user and ask whether to ingest at all.
+3. **Determine scope.** Is this source tied to a single project? (Check where the file was dropped: `raw/projects/<x>/` → project-scoped; `raw/` root → likely cross-cutting but confirm.) If ambiguous, ask the user: *"Which project does this belong to, or is it cross-cutting?"*
+4. Discuss key takeaways with the user (2–5 bullet points) and ask what to emphasize.
+5. **Entity extraction pass.** Before writing the summary page, emit a structured list of what the source introduces or touches:
+   ```
+   ENTITIES:   [{name, type, attrs, existing_page?}, ...]
+   CONCEPTS:   [{name, definition_in_one_line, existing_page?}, ...]
+   CLAIMS:     [{claim, confidence_0_to_1, supersedes?}, ...]
+   RELATIONS:  [{from, type, to}, ...]
+   ```
+   This list is the agent's plan. It does not need to be written to disk, but the agent must produce it before editing pages — it forces completeness and catches naming collisions (is this `alice-smith` or the existing `alice-s-ceo`?).
+6. Create the source summary page in the correct scope:
    - Project-scoped: `wiki/projects/<project>/sources/YYYY-MM-DD-<slug>.md` with `project: <slug>` in frontmatter.
    - Cross-cutting: `wiki/sources/YYYY-MM-DD-<slug>.md` with no `project` field.
-5. Scan the wiki for related entities, concepts, and syntheses **within the same scope first** (the project, if project-scoped), then check top-level pages for any that might be affected. For each affected page:
-   - Update claims, add citations, flag contradictions.
-   - Create stub pages (in the right scope) for entities/concepts the source introduces that don't yet exist. Default to project-scoped; promote only if the entity is known to span projects.
-6. If a project-scoped entity/concept now clearly spans projects, flag it for promotion (don't auto-promote without confirmation).
-7. Update `index.md` — add the new source under the right project section (or "Cross-cutting Sources"), add any new entities/concepts under their sections.
-8. Append an entry to `log.md` (see §6). Include the project slug in the entry if project-scoped: `## [YYYY-MM-DD] ingest | acme-rollout · Kickoff meeting notes`.
-9. Report back to the user: which pages were created, which were updated, any contradictions, promotion/demotion suggestions, open questions worth investigating.
+   - Set `confidence` and `quality` in frontmatter. A fresh source summary typically starts at `confidence: 0.8` (one source), `quality: 0.6` (structure present, not yet cross-linked).
+7. Scan the wiki for related entities, concepts, and syntheses **within the same scope first** (the project, if project-scoped), then check top-level pages for any that might be affected. For each affected page:
+   - Update claims, add citations, **recompute `confidence`** (usually up, if the new source confirms), **update `updated:`** date.
+   - Flag contradictions per §3.3. If the new source materially replaces old claims, apply the supersession protocol (§3.1d) — never silently overwrite.
+   - Attach typed relationships (§3.2a) when the source makes the connection type explicit.
+   - Create stub pages (in the right scope) for entities/concepts the source introduces that don't yet exist. Default to project-scoped; promote only if the entity is known to span projects. New stubs start at `confidence: 0.3`, `quality: 0.2`, `status: stub`.
+8. If a project-scoped entity/concept now clearly spans projects, flag it for promotion (don't auto-promote without confirmation).
+9. Update `index.md` — add the new source under the right project section (or "Cross-cutting Sources"), add any new entities/concepts under their sections.
+10. Append an entry to `log.md` (see §6). Include the project slug in the entry if project-scoped: `## [YYYY-MM-DD] ingest | acme-rollout · Kickoff meeting notes`. If any supersession was applied, note it.
+11. Report back to the user: pages created, pages updated (with before/after confidence where it changed materially), contradictions flagged, supersessions applied, promotion/demotion suggestions, open questions worth investigating.
 
 One ingest typically touches **10–15 pages**. That's fine. Batch the edits.
 
@@ -156,9 +251,15 @@ Trigger: the user asks a question.
 
 Checklist:
 1. Read `index.md` first to locate relevant pages.
-2. Read those pages (and follow links as needed).
-3. Synthesize the answer with wiki-link citations.
-4. **Decide: is this answer worth keeping?** If the question required real synthesis (comparing, analyzing, connecting), file the answer as a new page in `wiki/syntheses/` so the insight compounds.
+2. Read those pages (and follow links as needed, preferring typed relationships — §3.2a — to prune traversal).
+3. Synthesize the answer with wiki-link citations. Use inline `{c=...}` markers on claims whose confidence differs materially from the surrounding prose.
+4. **Auto-crystallize.** At the end of the answer, check whether the synthesis meets any of the crystallization thresholds:
+   - Answer ≥ ~500 words of substantive analysis (not just lookup), **OR**
+   - Answer explicitly connects ≥ 3 distinct concepts/entities, **OR**
+   - Answer surfaces a non-obvious contradiction, tension, or decision, **OR**
+   - User explicitly says *"file this"* / *"keep this"*.
+
+   If any threshold is met, file the answer as a new page in `wiki/syntheses/` (or the relevant project's `syntheses/`) with `confidence` reflecting the weakest link in the chain and `quality` self-assessed. Tell the user it was filed. If none of the thresholds is met, skip filing — not every Q&A is wiki-worthy.
 5. Output format can vary: inline markdown, a comparison table, a Marp slide deck (in `wiki/slides/`), a chart, a canvas. Default to an inline markdown answer; offer richer formats when useful.
 6. If a new synthesis page was created: update `index.md` and `log.md`.
 
@@ -301,6 +402,7 @@ Slides should **draw content from wiki pages**, not restate raw-source material.
 8. **Update the schema when you learn something about the domain.** The schema is a living document — if you discover a useful convention, propose adding it here.
 9. **Prefer small, frequent edits over giant rewrites.** Git-friendly.
 10. **Lint on a cadence — don't wait to be asked.** Staleness and hallucination risk grow with the ratio of ingests-to-lints, not with raw corpus size. Run (or proactively suggest) a lint pass every **20 ingests** since the last lint, or every **30 days** if the wiki has been touched — whichever comes first. To check cadence: `grep "^## \[.*ingest" log.md | wc -l` vs. `grep "^## \[.*lint" log.md | tail -1`. When the threshold is reached, the agent raises it with the user at the end of the current operation rather than silently starting a lint.
+11. **Make uncertainty visible.** Prefer a lower-confidence claim with a `{c=...}` marker over a silently-overwritten update or a confidently-stated guess. Prefer a supersession trail (§3.1d) over a silent overwrite. Prefer flagging a contradiction over picking a winner. The wiki earns trust by being honest about what it doesn't know.
 
 ---
 
@@ -318,6 +420,23 @@ When the user says… | the agent does…
 "promote <page>" / "demote <page>" | Move a page between project-scope and top-level per §2.5; update all wiki-links referencing it.
 "update the schema" | Edit this file and `CLAUDE.md` together. Log the change.
 "show me the graph" / "what's connected" | Suggest the user use Obsidian's graph view; summarize orphans / hubs.
+"enable `<flag>`" / "disable `<flag>`" | Toggle a feature flag from §11. Log the change.
+
+---
+
+## 11. Feature flags — behaviors deferred until needed
+
+Some behaviors from the v2 playbook are **declared here but off by default**. They can be turned on by the user at any time without retrofitting existing pages (they are behavioral, not schema-level). Listed so we don't forget they exist.
+
+| flag | default | what it changes when ON | turn on when |
+| --- | --- | --- | --- |
+| `auto_resolve_contradictions` | OFF | Agent proposes a winning claim at ingest based on recency × source count × source authority. User still approves. Today the rule is pure flagging (principle #5). | Lint is reporting >10 unresolved contradictions and manual triage is the bottleneck. |
+| `self_healing_lint` | OFF | Lint auto-applies *mechanical* fixes (broken wiki-links that have an obvious rename target, missing `updated:` date, missing `tags`, orphan tagging). Judgment-class fixes still need approval. | Wiki has ≥200 pages and lint reports become long enough to skim rather than read. |
+| `auto_quality_score_on_write` | OFF | Every page the agent writes or edits gets a fresh `quality` score computed by a second-pass self-critique. | Lint is finding many pages that feel thin but `quality` is stale/unset. |
+| `retention_decay` | OFF | Agents lower `confidence` on pages not reinforced for N months (Ebbinghaus-ish). Never deletes content, only demotes it in query ranking. | Wiki has >500 pages and old-but-irrelevant content keeps surfacing in queries. |
+| `hybrid_search` | OFF | Extends query mechanism beyond `index.md` + link-walking with BM25 + embeddings. Requires tooling (e.g. LanceDB / txtai) outside vanilla Obsidian. | Wiki has >200 pages and `index.md`-based navigation starts missing relevant pages. |
+
+Flags are toggled by the user with: *"enable `<flag>`"* / *"disable `<flag>`"*. The agent records the toggle as a `schema-update` entry in `log.md`. Off flags stay listed here so future re-reads of the schema know the option exists.
 
 ---
 

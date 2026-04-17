@@ -5,7 +5,14 @@ created: YYYY-MM-DD
 updated: YYYY-MM-DD
 tags: []
 sources: []
-status: draft
+status: draft         # stub | draft | stable | archived
+confidence: 0.7       # 0.0-1.0 — typically the weakest link in the argument chain
+quality: 0.6          # 0.0-1.0 — self-assessed craft (updated at lint)
+supersedes:           # optional — [[wiki/syntheses/earlier-take]]
+superseded_by:        # optional — [[wiki/syntheses/better-take]]
+relationships:        # optional — typed edges to the things this synthesis argues about
+  # - {type: contradicts, target: [[wiki/syntheses/...]]}
+  # - {type: references,  target: [[wiki/concepts/...]]}
 ---
 
 # <Synthesis title>

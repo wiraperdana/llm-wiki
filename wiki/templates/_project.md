@@ -4,11 +4,19 @@ type: project
 project: <project-slug>
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-status: active       # active | paused | completed | archived
+status: active       # active | paused | completed | archived — project lifecycle (distinct from page-maturity status on other types)
 kickoff: YYYY-MM-DD
 deadline: YYYY-MM-DD # optional — set null if open-ended
 tags: [domain, ...]
 stakeholders: [[wiki/entities/...]]  # people who appear in this project
+confidence: 0.8      # how sure the agent is that this README faithfully reflects the project's current state
+quality: 0.6         # self-assessed craft of the README itself (updated at lint)
+supersedes:          # optional — [[wiki/projects/older-slug/README]]
+superseded_by:       # optional — [[wiki/projects/newer-slug/README]]
+relationships:       # optional — typed edges to cross-cutting pages
+  # - {type: uses,       target: [[wiki/concepts/...]]}
+  # - {type: owns,       target: [[wiki/entities/...]]}
+  # - {type: depends_on, target: [[wiki/projects/other-slug/README]]}
 ---
 
 # <Project name>

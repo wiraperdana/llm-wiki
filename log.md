@@ -62,3 +62,43 @@ Changes:
 - `CLAUDE.md` mirrors the rule in its Claude-specific quick notes.
 
 No wiki content changed — schema-only.
+
+## [2026-04-17] schema-update | v2 additions: confidence, quality, supersession, typed relationships, scrub, entity extraction, auto-crystallize, feature flags
+
+Adopted six data-schema additions + one principle + one feature-flag section from the "LLM Wiki v2" playbook (ref: `raw/` upload `llm-wiki-advance.md`). Rationale: data-schema changes are **cheap at page creation** but **expensive (sometimes impossible) to backfill** later — e.g., supersession trail cannot be reconstructed once a page has been overwritten without it. Adopting early means every page born from now on carries the new fields, avoiding a retrofit at ~500 pages. Behavioral changes (auto-resolve contradictions, self-healing lint, retention decay, etc.) are **kept behind feature flags** in a new §11 so they can be switched on without touching data.
+
+Changes:
+
+**Schema (AGENTS.md §3):**
+- §3.1 frontmatter gains: `confidence` (0.0–1.0), `quality` (0.0–1.0), `supersedes`, `superseded_by`, optional `relationships` block. `status` extended to include `archived`.
+- §3.1a — `status` documented as consolidation tier with reader-action table.
+- §3.1b — confidence calibration guide.
+- §3.1c — quality as self-assessed craft score.
+- §3.1d — supersession protocol: mark both sides, preserve old body under an "Archived" header, update `index.md`, log.
+- §3.2a — typed relationships (inline `|type` on wiki-links + frontmatter `relationships:` block), standard relationship types table (`uses`, `depends_on`, `owns`, `caused`, `fixed`, `contradicts`, `supersedes`, `part_of`, `references`).
+- §3.3 — inline confidence marker syntax `{c=0.0-1.0}` after citations for claim-level confidence.
+
+**Operations (AGENTS.md §4):**
+- §4.1 ingest: added step 2 (scrub sensitive data — API keys, PII, NDA-covered names; record in source page's `scrubbed:` frontmatter), step 5 (entity-extraction pass emitting structured `{ENTITIES, CONCEPTS, CLAIMS, RELATIONS}` list before writing), and per-page confidence/quality recomputation in step 7.
+- §4.2 query: step 4 changed from discretionary to threshold-driven auto-crystallize (≥500 words OR ≥3 concepts connected OR surfaces a contradiction OR user asks).
+
+**Principles (AGENTS.md §9):**
+- Principle #11 added: "Make uncertainty visible." Prefer confidence markers, supersession trails, and contradiction flags over silent overwrites or confident guesses.
+
+**Feature flags (AGENTS.md §11 — new section):**
+- Five behaviors declared but off-by-default: `auto_resolve_contradictions`, `self_healing_lint`, `auto_quality_score_on_write`, `retention_decay`, `hybrid_search`. Each with its "turn on when" criterion. Toggled via `enable <flag>` / `disable <flag>` (added to §10 quick-ref).
+
+**Templates (`wiki/templates/*`):**
+- All six templates (`_concept`, `_entity`, `_source`, `_synthesis`, `_slide`, `_project`) extended with `confidence`, `quality`, `supersedes`, `superseded_by`. Relationship-bearing templates (`_concept`, `_entity`, `_synthesis`, `_project`) gain commented `relationships:` scaffolding. `_source` additionally gains `scrubbed:` field. Defaults per type: stubs start at `confidence: 0.3, quality: 0.2`; fresh source summaries at `0.8 / 0.6`; project READMEs at `0.8 / 0.6`.
+
+**CLAUDE.md:**
+- Six new bullets under "Claude-specific quick notes" covering uncertainty hygiene, scrub, entity extraction, auto-crystallize, and feature-flag defaults.
+
+**What was deliberately NOT adopted:**
+- Full four-tier consolidation (working/episodic/semantic/procedural) — folded into extended `status` enum instead (`stub | draft | stable | archived`).
+- Ebbinghaus retention decay as a live mechanism — deferred as feature flag `retention_decay`.
+- Hybrid search (BM25 + vectors + graph) — deferred as feature flag `hybrid_search`; index.md + Obsidian search stays primary.
+- Mesh sync / multi-agent coordination — single-user wiki, not applicable.
+- Event-driven automation hooks — outside current tooling scope.
+
+Existing wiki content (1 source page, 1 concept page) is NOT backfilled — the new fields are optional. They will be populated on the next touch of those pages during ingest or lint.

@@ -8,7 +8,11 @@ created: YYYY-MM-DD
 updated: YYYY-MM-DD
 tags: []
 sources: []
-status: draft
+status: draft         # stub | draft | stable | archived
+confidence: 0.7       # 0.0-1.0 — inherit from the syntheses the deck is built from
+quality: 0.6          # 0.0-1.0 — self-assessed craft
+supersedes:           # optional — [[wiki/slides/older-deck]]
+superseded_by:        # optional — [[wiki/slides/newer-deck]]
 ---
 
 <!-- _class: lead -->

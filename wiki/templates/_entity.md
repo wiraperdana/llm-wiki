@@ -6,7 +6,15 @@ updated: YYYY-MM-DD
 tags: [person|org|product|place]
 aliases: []
 sources: []
-status: stub
+status: stub          # stub | draft | stable | archived
+confidence: 0.3       # 0.0-1.0 — see AGENTS.md §3.1b
+quality: 0.2          # 0.0-1.0 — see AGENTS.md §3.1c
+supersedes:           # optional — [[wiki/entities/old-page]]
+superseded_by:        # optional — [[wiki/entities/newer-page]]
+relationships:        # optional — typed edges (see AGENTS.md §3.2a)
+  # - {type: owns,       target: [[wiki/concepts/...]]}
+  # - {type: depends_on, target: [[wiki/entities/...]]}
+  # - {type: part_of,    target: [[wiki/entities/...]]}
 ---
 
 # <Entity name>
